@@ -14,7 +14,8 @@ async fn main() {
         .route("/", get(root))
         .route("/hello", get(hello))
         .route("/live", get(live))
-        .route("/ready", get(ready));
+        .route("/ready", get(ready))
+        .route("/hostname", get(hostname));
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", port))
         .await
@@ -39,4 +40,11 @@ async fn live() -> StatusCode {
 
 async fn ready() -> StatusCode {
     StatusCode::OK
+}
+
+async fn hostname() -> String {
+    hostname::get()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string()
 }
