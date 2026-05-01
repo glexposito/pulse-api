@@ -8,7 +8,7 @@ publish-image:
   stage: publish-image
   image: docker:latest
   services:
-    - docker:latest-dind
+    - docker:dind
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - when: manual
