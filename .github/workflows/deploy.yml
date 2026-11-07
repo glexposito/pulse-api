@@ -76,7 +76,10 @@ jobs:
           REVISION: ${{ steps.pin.outputs.revision }}
         run: |
           argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
-          argocd app sync "$APP" --prune --timeout 300
+          # --revision pins the sync to the commit pushed above, not whatever
+          # HEAD Argo CD last polled. Needs auto-sync off on these apps
+          # (k8s-keda-poc argocd/pulse-api-appset.yaml).
+          argocd app sync "$APP" --revision "$REVISION" --prune --timeout 300
           argocd app wait "$APP" --health --timeout 300
 
       - name: E2E
