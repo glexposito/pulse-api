@@ -74,7 +74,7 @@ jobs:
       stage: internal
       digest: ${{ needs.build.outputs.digest }}
     secrets:
-      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+      GITOPS_SSH_KEY: ${{ secrets.GITOPS_SSH_KEY }}
 
   stg:
     name: Staging
@@ -84,7 +84,7 @@ jobs:
       stage: stg
       digest: ${{ needs.build.outputs.digest }}
     secrets:
-      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+      GITOPS_SSH_KEY: ${{ secrets.GITOPS_SSH_KEY }}
 
   prod:
     name: Production
@@ -94,4 +94,4 @@ jobs:
       stage: prod
       digest: ${{ needs.build.outputs.digest }}
     secrets:
-      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+      GITOPS_SSH_KEY: ${{ secrets.GITOPS_SSH_KEY }}

@@ -29,6 +29,14 @@ out to GitHub, so nothing has to be exposed.
 
 Setup:
 
-- Repo secret `GITOPS_TOKEN`: a fine-grained PAT with **Contents: Read and
-  write** on `glexposito/k8s-keda-poc`.
+- Repo secret `GITOPS_SSH_KEY`: the private half of a **write** deploy key on
+  `glexposito/k8s-keda-poc` (the built-in `GITHUB_TOKEN` can't push to another
+  repo). Create both halves with:
+
+  ```bash
+  ssh-keygen -t ed25519 -N "" -f /tmp/gitops_key -C "pulse-api pipeline"
+  gh repo deploy-key add /tmp/gitops_key.pub -R glexposito/k8s-keda-poc --allow-write -t "pulse-api pipeline"
+  gh secret set GITOPS_SSH_KEY -R glexposito/pulse-api < /tmp/gitops_key
+  rm /tmp/gitops_key /tmp/gitops_key.pub
+  ```
 - The runner, started from k8s-keda-poc (see its README).
