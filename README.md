@@ -34,5 +34,5 @@ Setup (deploy key, runner, protecting this public repo) and troubleshooting:
 
 Test commit to build a new image and promote it internal → stg → prod.
 
-- Local time: 2026-11-07 15:13:20 NZDT (+1300)
-- Commit time: 2026-11-07 15:13:20 NZDT (+1300)
+- Local time: 2026-11-07 15:24:53 NZDT (+1300)
+- Commit time: 2026-11-07 15:24:53 NZDT (+1300)
