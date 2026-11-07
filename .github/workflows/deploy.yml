@@ -1,6 +1,7 @@
 # One promotion stage, called by pipeline.yml once per environment:
 #   1. pin the image digest in k8s-keda-poc's apps/pulse-api/overlays/<stage>
-#   2. argocd app sync to exactly that commit, wait until Healthy
+#   2. have Argo CD (auto-sync) pick it up now, wait until that exact
+#      commit is Synced + Healthy
 #   3. e2e against the live deployment (scripts/e2e.sh)
 #
 # Runs on the self-hosted runner, which provides the argocd/kustomize CLIs
@@ -71,13 +72,25 @@ jobs:
 
           echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Sync with Argo CD
+      - name: Wait for Argo CD
+        working-directory: gitops
         env:
           REVISION: ${{ steps.pin.outputs.revision }}
         run: |
           argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
-          argocd app sync "$APP" --revision "$REVISION" --prune --timeout 300
-          argocd app wait "$APP" --health --timeout 300
+          # The app auto-syncs; --refresh makes Argo CD see the new commit now
+          # instead of on its ~3 min poll. Then wait until what it deployed
+          # includes our commit (it may be a newer one, if something else was
+          # pushed meanwhile) - not an older revision that was already Synced.
+          argocd app get "$APP" --refresh > /dev/null
+          includes_ours() {
+            deployed=$(argocd app get "$APP" -o json | jq -r .status.sync.revision)
+            git fetch -q origin "$deployed" 2>/dev/null
+            git merge-base --is-ancestor "$REVISION" "$deployed" 2>/dev/null
+          }
+          for _ in $(seq 1 60); do includes_ours && break; sleep 5; done
+          argocd app wait "$APP" --sync --health --timeout 300
+          includes_ours || { echo "Argo CD is on $deployed, which doesn't include $REVISION"; exit 1; }
 
       - name: E2E
         run: ./scripts/e2e.sh "http://k3s-$STAGE:30080"

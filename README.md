@@ -19,7 +19,7 @@ pushes it to GHCR, then promotes that exact digest
 
 1. Pin the digest in [k8s-keda-poc](https://github.com/glexposito/k8s-keda-poc)'s
    `apps/pulse-api/overlays/<stage>` and push.
-2. `argocd app sync pulse-api-<stage>` to that commit, wait until Healthy.
+2. Argo CD (auto-sync) deploys it; wait until that commit is Synced + Healthy.
 3. `scripts/e2e.sh http://k3s-<stage>:30080`. A failure stops the promotion.
 
 Deploy stages run on a self-hosted runner (`runs-on: [self-hosted, local-k8s]`):
