@@ -40,3 +40,10 @@ Setup:
   rm /tmp/gitops_key /tmp/gitops_key.pub
   ```
 - The runner, started from k8s-keda-poc (see its README).
+
+## Pipeline test
+
+Test commit to build a new image and promote it internal → stg → prod.
+
+- Local time: 2026-11-07 14:03:23 NZDT (+1300)
+- Commit time: 2026-11-07 14:03:23 NZDT (+1300)
