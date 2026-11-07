@@ -36,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout pulse-api
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Checkout GitOps repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: glexposito/k8s-keda-poc
           # GITHUB_TOKEN can't write to another repo, even one you own - a
