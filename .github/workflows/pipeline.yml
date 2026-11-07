@@ -1,0 +1,97 @@
+# Build once, then promote the same image digest internal -> stg -> prod.
+# Each stage (deploy.yml) bumps that stage's digest in the GitOps repo
+# (glexposito/k8s-keda-poc), has Argo CD sync it, and runs e2e against it -
+# the next stage only starts if the previous one's e2e passed.
+#
+# build runs on GitHub's cloud; the deploy stages run on the self-hosted
+# runner (github-runner in k8s-keda-poc's docker-compose.yaml), since
+# Argo CD and the clusters only exist on that machine.
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+# One promotion at a time - two pipelines racing through the stages would
+# interleave digests between environments.
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  internal:
+    name: Internal
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    with:
+      stage: internal
+      digest: ${{ needs.build.outputs.digest }}
+    secrets:
+      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+
+  stg:
+    name: Staging
+    needs: [build, internal]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      stage: stg
+      digest: ${{ needs.build.outputs.digest }}
+    secrets:
+      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+
+  prod:
+    name: Production
+    needs: [build, stg]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      stage: prod
+      digest: ${{ needs.build.outputs.digest }}
+    secrets:
+      GITOPS_TOKEN: ${{ secrets.GITOPS_TOKEN }}

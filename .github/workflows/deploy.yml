@@ -1,0 +1,80 @@
+# One promotion stage, called by pipeline.yml once per environment:
+#   1. pin the image digest in k8s-keda-poc's apps/pulse-api/overlays/<stage>
+#   2. argocd app sync to exactly that commit, wait until Healthy
+#   3. e2e against the live deployment (scripts/e2e.sh)
+#
+# Runs on the self-hosted runner, which provides the argocd/kustomize CLIs
+# and ARGOCD_SERVER/ARGOCD_PASSWORD (k8s-keda-poc's runner/Dockerfile and
+# docker-compose.yaml), and reaches each cluster's NodePort by hostname.
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: internal, stg or prod
+        type: string
+        required: true
+      digest:
+        description: Image digest to deploy (sha256:...)
+        type: string
+        required: true
+    secrets:
+      GITOPS_TOKEN:
+        description: Token with contents:write on glexposito/k8s-keda-poc
+        required: true
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: [self-hosted, local-k8s]
+    env:
+      STAGE: ${{ inputs.stage }}
+      DIGEST: ${{ inputs.digest }}
+      IMAGE: ghcr.io/${{ github.repository }}
+      APP: pulse-api-${{ inputs.stage }}
+
+    steps:
+      - name: Checkout pulse-api
+        uses: actions/checkout@v4
+
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: glexposito/k8s-keda-poc
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+
+      - name: Pin image digest
+        id: pin
+        working-directory: gitops
+        run: |
+          (cd "apps/pulse-api/overlays/$STAGE" && kustomize edit set image "$IMAGE@$DIGEST")
+
+          if git diff --quiet; then
+            echo "$STAGE already pinned to $DIGEST - nothing to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "pulse-api: deploy $DIGEST to $STAGE" \
+              -m "From ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+            # Someone else may have pushed to the GitOps repo meanwhile.
+            for attempt in 1 2 3; do
+              git push && break
+              [ "$attempt" = 3 ] && exit 1
+              git pull --rebase
+            done
+          fi
+
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Sync with Argo CD
+        env:
+          REVISION: ${{ steps.pin.outputs.revision }}
+        run: |
+          argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
+          argocd app sync "$APP" --revision "$REVISION" --prune --timeout 300
+          argocd app wait "$APP" --health --timeout 300
+
+      - name: E2E
+        run: ./scripts/e2e.sh "http://k3s-$STAGE:30080"

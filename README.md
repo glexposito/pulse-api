@@ -10,3 +10,25 @@ It currently exposes:
 - `GET /ready`
 
 The goal is to keep this service minimal and use it as a base for adding OpenTelemetry instrumentation next.
+
+## Pipeline
+
+`.github/workflows/pipeline.yml` builds the image once on GitHub's cloud,
+pushes it to GHCR, then promotes that exact digest
+**internal → stg → prod** (`.github/workflows/deploy.yml`, once per stage):
+
+1. Pin the digest in [k8s-keda-poc](https://github.com/glexposito/k8s-keda-poc)'s
+   `apps/pulse-api/overlays/<stage>` and push.
+2. `argocd app sync pulse-api-<stage>` to that commit, wait until Healthy.
+3. `scripts/e2e.sh http://k3s-<stage>:30080`. A failure stops the promotion.
+
+Deploy stages run on a self-hosted runner (`runs-on: [self-hosted, local-k8s]`):
+the `github-runner` service in k8s-keda-poc's `docker-compose.yaml`, because
+Argo CD and the clusters only exist on that machine. The runner only connects
+out to GitHub, so nothing has to be exposed.
+
+Setup:
+
+- Repo secret `GITOPS_TOKEN`: a fine-grained PAT with **Contents: Read and
+  write** on `glexposito/k8s-keda-poc`.
+- The runner, started from k8s-keda-poc (see its README).
