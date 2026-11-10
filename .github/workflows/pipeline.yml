@@ -7,7 +7,7 @@
 # runner (github-runner in gitops-poc's cluster/docker-compose.yaml), since
 # Argo CD and the clusters only exist on that machine.
 #
-# build also pushes the e2e image (Dockerfile.e2e) for gitops-poc's Kargo
+# build also pushes the Playwright e2e image (e2e/) for gitops-poc's Kargo
 # path, which picks up the same builds on its own (docs/kargo.md there).
 name: Pipeline
 
@@ -69,10 +69,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      # The e2e tests as an image, same sha-<short> tag as the app. Only
-      # gitops-poc's Kargo path uses it: its Warehouse pairs the two images
-      # by tag and runs this one to verify each stage. The CI path below
-      # still runs scripts/e2e.sh on the runner.
+      # The Playwright e2e tests (e2e/) as an image, same sha-<short> tag as
+      # the app. Only gitops-poc's Kargo path uses it: its Warehouse pairs
+      # the two images by tag and runs this one to verify each stage. The CI
+      # path below still runs scripts/e2e.sh on the runner.
       - name: Extract e2e image metadata
         id: meta-e2e
         uses: docker/metadata-action@v6
@@ -84,8 +84,7 @@ jobs:
       - name: Build and push e2e image
         uses: docker/build-push-action@v7
         with:
-          context: .
-          file: ./Dockerfile.e2e
+          context: ./e2e
           push: true
           tags: ${{ steps.meta-e2e.outputs.tags }}
           labels: ${{ steps.meta-e2e.outputs.labels }}

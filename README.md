@@ -30,11 +30,21 @@ out to GitHub, so nothing has to be exposed.
 Setup (deploy key, runner, protecting this public repo) and troubleshooting:
 [gitops-poc/docs/ci-setup.md](https://github.com/glexposito/gitops-poc/blob/main/docs/ci-setup.md).
 
-The build also pushes `ghcr.io/glexposito/pulse-api-e2e` (`Dockerfile.e2e`:
-`scripts/e2e.sh` in an image) with the same `sha-*` tag. gitops-poc's Kargo
+The build also pushes `ghcr.io/glexposito/pulse-api-e2e`, the Playwright
+tests in `e2e/` as an image, with the same `sha-*` tag. gitops-poc's Kargo
 path promotes the same builds a second way and uses that image to verify each
 stage: see
 [gitops-poc/docs/kargo.md](https://github.com/glexposito/gitops-poc/blob/main/docs/kargo.md).
+
+Run the Playwright tests yourself against any deployed copy:
+
+```bash
+cd e2e && npm ci && npx playwright install chromium
+BASE_URL=http://localhost:8091 npx playwright test   # internal, Kargo copy
+```
+
+As with `scripts/e2e.sh`, the `/hostname` test expects a pod name, so it
+fails against a local `cargo run`.
 
 ## Pipeline test
 

@@ -3,6 +3,8 @@
 #   ./scripts/e2e.sh http://k3s-stg:30080   (from the self-hosted runner)
 # The /hostname check expects a pod name, so it fails against a local
 # `cargo run` - every other check works there too.
+# The CI path runs this; gitops-poc's Kargo path runs the Playwright
+# version of the same checks (e2e/).
 set -euo pipefail
 
 BASE_URL="${1:?usage: $0 <base-url>}"
