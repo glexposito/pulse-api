@@ -1,11 +1,11 @@
 // pulse-api's e2e tests, run against an already-deployed pulse-api - nothing
 // is started here. BASE_URL picks the target:
-//   BASE_URL=http://localhost:8091 npx playwright test       (internal, Kargo copy)
+//   BASE_URL=http://localhost:8081 npx playwright test       (internal)
 // In Kargo, run.sh sets it from the URL the verification passes in.
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.BASE_URL;
-if (!baseURL) throw new Error('Set BASE_URL, e.g. BASE_URL=http://localhost:8091');
+if (!baseURL) throw new Error('Set BASE_URL, e.g. BASE_URL=http://localhost:8081');
 
 export default defineConfig({
   testDir: './tests',

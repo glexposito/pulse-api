@@ -13,38 +13,34 @@ The goal is to keep this service minimal and use it as a base for adding OpenTel
 
 ## Pipeline
 
-`.github/workflows/pipeline.yml` builds the image once on GitHub's cloud,
-pushes it to GHCR, then promotes that exact digest
-**internal → stg → prod** (`.github/workflows/deploy.yml`, once per stage):
+`.github/workflows/pipeline.yml` only **builds**. Every push to `main` pushes
+two images to GHCR with the same `sha-*` tag:
 
-1. Pin the digest in [gitops-poc](https://github.com/glexposito/gitops-poc)'s
-   `apps/pulse-api/overlays/<stage>` and push.
-2. `argocd app sync pulse-api-<stage>` to that commit, wait until Healthy.
-3. `scripts/e2e.sh http://k3s-<stage>:30080`. A failure stops the promotion.
+| Image | From | What |
+|---|---|---|
+| `ghcr.io/glexposito/pulse-api` | `Dockerfile` | The app |
+| `ghcr.io/glexposito/pulse-api-e2e` | `e2e/` | Its Playwright tests |
 
-Deploy stages run on a self-hosted runner (`runs-on: [self-hosted, local-k8s]`):
-the `github-runner` service in gitops-poc's `cluster/docker-compose.yaml`, because
-Argo CD and the clusters only exist on that machine. The runner only connects
-out to GitHub, so nothing has to be exposed.
-
-Setup (deploy key, runner, protecting this public repo) and troubleshooting:
-[gitops-poc/docs/ci-setup.md](https://github.com/glexposito/gitops-poc/blob/main/docs/ci-setup.md).
-
-The build also pushes `ghcr.io/glexposito/pulse-api-e2e`, the Playwright
-tests in `e2e/` as an image, with the same `sha-*` tag. gitops-poc's Kargo
-path promotes the same builds a second way and uses that image to verify each
-stage: see
+**Promotion is Kargo's job**, in
+[gitops-poc](https://github.com/glexposito/gitops-poc): it picks up each new
+build, deploys it internal → stg → prod, and before each next stage runs the
+e2e image against the pulse-api it just deployed there. Prod waits for a
+manual Promote. See
 [gitops-poc/docs/kargo.md](https://github.com/glexposito/gitops-poc/blob/main/docs/kargo.md).
 
-Run the Playwright tests yourself against any deployed copy:
+## E2E tests
+
+`e2e/` holds Playwright tests (API checks plus one Chromium check). The image
+takes the base URL as its argument and exits 0 when every test passes. Run
+them yourself against a deployed pulse-api:
 
 ```bash
 cd e2e && npm ci && npx playwright install chromium
-BASE_URL=http://localhost:8091 npx playwright test   # internal, Kargo copy
+BASE_URL=http://localhost:8081 npx playwright test   # internal
 ```
 
-As with `scripts/e2e.sh`, the `/hostname` test expects a pod name, so it
-fails against a local `cargo run`.
+The `/hostname` test expects a pod name, so it fails against a local
+`cargo run`.
 
 ## Pipeline test
 

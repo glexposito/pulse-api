@@ -1,5 +1,4 @@
-// The same checks as scripts/e2e.sh (which the CI path still runs), as
-// Playwright API tests - no browser needed for these.
+// pulse-api's API checks, as Playwright API tests - no browser needed.
 import { test, expect } from '@playwright/test';
 
 // A freshly synced deployment may still be rolling out.
