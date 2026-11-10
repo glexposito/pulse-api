@@ -30,6 +30,12 @@ out to GitHub, so nothing has to be exposed.
 Setup (deploy key, runner, protecting this public repo) and troubleshooting:
 [gitops-poc/docs/ci-setup.md](https://github.com/glexposito/gitops-poc/blob/main/docs/ci-setup.md).
 
+The build also pushes `ghcr.io/glexposito/pulse-api-e2e` (`Dockerfile.e2e`:
+`scripts/e2e.sh` in an image) with the same `sha-*` tag. gitops-poc's Kargo
+path promotes the same builds a second way and uses that image to verify each
+stage: see
+[gitops-poc/docs/kargo.md](https://github.com/glexposito/gitops-poc/blob/main/docs/kargo.md).
+
 ## Pipeline test
 
 Test commit to build a new image and promote it internal → stg → prod.
