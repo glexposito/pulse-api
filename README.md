@@ -50,3 +50,4 @@ Test commit to build a new image and promote it internal → stg → prod.
 - Commit time: 2026-11-07 15:24:53 NZDT (+1300)
 - Kargo test: Tue 10 Nov 2026 19:05:13 NZDT
 - Kargo test: Tue 10 Nov 2026 19:52:09 NZDT
+- Kargo test: Tue 10 Nov 2026 20:00:32 NZDT
