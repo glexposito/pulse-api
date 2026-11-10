@@ -4,7 +4,7 @@
 # the next stage only starts if the previous one's e2e passed.
 #
 # build runs on GitHub's cloud; the deploy stages run on the self-hosted
-# runner (github-runner in gitops-poc's docker-compose.yaml), since
+# runner (github-runner in gitops-poc's cluster/docker-compose.yaml), since
 # Argo CD and the clusters only exist on that machine.
 name: Pipeline
 

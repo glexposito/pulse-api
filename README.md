@@ -23,7 +23,7 @@ pushes it to GHCR, then promotes that exact digest
 3. `scripts/e2e.sh http://k3s-<stage>:30080`. A failure stops the promotion.
 
 Deploy stages run on a self-hosted runner (`runs-on: [self-hosted, local-k8s]`):
-the `github-runner` service in gitops-poc's `docker-compose.yaml`, because
+the `github-runner` service in gitops-poc's `cluster/docker-compose.yaml`, because
 Argo CD and the clusters only exist on that machine. The runner only connects
 out to GitHub, so nothing has to be exposed.
 

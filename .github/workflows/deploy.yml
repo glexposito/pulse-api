@@ -4,8 +4,8 @@
 #   3. e2e against the live deployment (scripts/e2e.sh)
 #
 # Runs on the self-hosted runner, which provides the argocd/kustomize CLIs
-# and ARGOCD_SERVER/ARGOCD_PASSWORD (gitops-poc's runner/Dockerfile and
-# docker-compose.yaml), and reaches each cluster's NodePort by hostname.
+# and ARGOCD_SERVER/ARGOCD_PASSWORD (gitops-poc's cluster/runner/Dockerfile and
+# cluster/docker-compose.yaml), and reaches each cluster's NodePort by hostname.
 name: Deploy
 
 on:
@@ -78,7 +78,7 @@ jobs:
           argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
           # --revision pins the sync to the commit pushed above, not whatever
           # HEAD Argo CD last polled. Needs auto-sync off on these apps
-          # (gitops-poc argocd/pulse-api-appset.yaml).
+          # (gitops-poc argocd/appsets/pulse-api.yaml).
           argocd app sync "$APP" --revision "$REVISION" --prune --timeout 300
           argocd app wait "$APP" --health --timeout 300
 
