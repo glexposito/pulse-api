@@ -24,8 +24,8 @@ two images to GHCR with the same `sha-*` tag:
 **Promotion is Kargo's job**, in
 [gitops-poc](https://github.com/glexposito/gitops-poc): it picks up each new
 build, deploys it internal → stg → prod, and before each next stage runs the
-e2e image against the pulse-api it just deployed there. Prod waits for a
-manual Promote. See
+e2e image against the pulse-api it just deployed there. Each stage promotes
+automatically after the preceding stage's verification passes. See
 [gitops-poc/docs/kargo.md](https://github.com/glexposito/gitops-poc/blob/main/docs/kargo.md).
 
 ## E2E tests
@@ -49,3 +49,4 @@ Test commit to build a new image and promote it internal → stg → prod.
 - Local time: 2026-11-07 15:24:53 NZDT (+1300)
 - Commit time: 2026-11-07 15:24:53 NZDT (+1300)
 - Kargo test: Tue 10 Nov 2026 19:05:13 NZDT
+- Kargo test: Tue 10 Nov 2026 19:52:09 NZDT
