@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E checks against pulse-api deployed on a k8s-keda-poc cluster, e.g.
+# E2E checks against pulse-api deployed on a gitops-poc cluster, e.g.
 #   ./scripts/e2e.sh http://k3s-stg:30080   (from the self-hosted runner)
 # The /hostname check expects a pod name, so it fails against a local
 # `cargo run` - every other check works there too.

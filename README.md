@@ -17,18 +17,18 @@ The goal is to keep this service minimal and use it as a base for adding OpenTel
 pushes it to GHCR, then promotes that exact digest
 **internal → stg → prod** (`.github/workflows/deploy.yml`, once per stage):
 
-1. Pin the digest in [k8s-keda-poc](https://github.com/glexposito/k8s-keda-poc)'s
+1. Pin the digest in [gitops-poc](https://github.com/glexposito/gitops-poc)'s
    `apps/pulse-api/overlays/<stage>` and push.
 2. `argocd app sync pulse-api-<stage>` to that commit, wait until Healthy.
 3. `scripts/e2e.sh http://k3s-<stage>:30080`. A failure stops the promotion.
 
 Deploy stages run on a self-hosted runner (`runs-on: [self-hosted, local-k8s]`):
-the `github-runner` service in k8s-keda-poc's `docker-compose.yaml`, because
+the `github-runner` service in gitops-poc's `docker-compose.yaml`, because
 Argo CD and the clusters only exist on that machine. The runner only connects
 out to GitHub, so nothing has to be exposed.
 
 Setup (deploy key, runner, protecting this public repo) and troubleshooting:
-[k8s-keda-poc/docs/ci-setup.md](https://github.com/glexposito/k8s-keda-poc/blob/main/docs/ci-setup.md).
+[gitops-poc/docs/ci-setup.md](https://github.com/glexposito/gitops-poc/blob/main/docs/ci-setup.md).
 
 ## Pipeline test
 

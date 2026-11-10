@@ -1,10 +1,10 @@
 # Build once, then promote the same image digest internal -> stg -> prod.
 # Each stage (deploy.yml) bumps that stage's digest in the GitOps repo
-# (glexposito/k8s-keda-poc), has Argo CD sync it, and runs e2e against it -
+# (glexposito/gitops-poc), has Argo CD sync it, and runs e2e against it -
 # the next stage only starts if the previous one's e2e passed.
 #
 # build runs on GitHub's cloud; the deploy stages run on the self-hosted
-# runner (github-runner in k8s-keda-poc's docker-compose.yaml), since
+# runner (github-runner in gitops-poc's docker-compose.yaml), since
 # Argo CD and the clusters only exist on that machine.
 name: Pipeline
 

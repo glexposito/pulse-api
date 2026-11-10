@@ -1,10 +1,10 @@
 # One promotion stage, called by pipeline.yml once per environment:
-#   1. pin the image digest in k8s-keda-poc's apps/pulse-api/overlays/<stage>
+#   1. pin the image digest in gitops-poc's apps/pulse-api/overlays/<stage>
 #   2. argocd app sync to exactly that commit, wait until Healthy
 #   3. e2e against the live deployment (scripts/e2e.sh)
 #
 # Runs on the self-hosted runner, which provides the argocd/kustomize CLIs
-# and ARGOCD_SERVER/ARGOCD_PASSWORD (k8s-keda-poc's runner/Dockerfile and
+# and ARGOCD_SERVER/ARGOCD_PASSWORD (gitops-poc's runner/Dockerfile and
 # docker-compose.yaml), and reaches each cluster's NodePort by hostname.
 name: Deploy
 
@@ -21,7 +21,7 @@ on:
         required: true
     secrets:
       GITOPS_SSH_KEY:
-        description: Private half of a write deploy key on glexposito/k8s-keda-poc
+        description: Private half of a write deploy key on glexposito/gitops-poc
         required: true
 
 jobs:
@@ -41,9 +41,9 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v7
         with:
-          repository: glexposito/k8s-keda-poc
+          repository: glexposito/gitops-poc
           # GITHUB_TOKEN can't write to another repo, even one you own - a
-          # deploy key is scoped to k8s-keda-poc alone and isn't tied to any
+          # deploy key is scoped to gitops-poc alone and isn't tied to any
           # user account.
           ssh-key: ${{ secrets.GITOPS_SSH_KEY }}
           path: gitops
@@ -78,7 +78,7 @@ jobs:
           argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
           # --revision pins the sync to the commit pushed above, not whatever
           # HEAD Argo CD last polled. Needs auto-sync off on these apps
-          # (k8s-keda-poc argocd/pulse-api-appset.yaml).
+          # (gitops-poc argocd/pulse-api-appset.yaml).
           argocd app sync "$APP" --revision "$REVISION" --prune --timeout 300
           argocd app wait "$APP" --health --timeout 300
 
